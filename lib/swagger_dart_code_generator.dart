@@ -11,6 +11,7 @@ import 'package:dart_style/dart_style.dart';
 import 'package:path/path.dart' show join, normalize;
 import 'package:http/http.dart' as http;
 import 'package:yaml/yaml.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 ///Returns instance of SwaggerDartCodeGenerator
 SwaggerDartCodeGenerator swaggerCodeBuilder(BuilderOptions options) =>
@@ -36,6 +37,7 @@ String normal(String path) {
 Iterable<FileSystemEntity> _getInputFolderFilesList(GeneratorOptions options) {
   return Directory(normalize(options.inputFolder)).listSync().where(
       (FileSystemEntity file) =>
+         
           _inputFileExtensions.any((ending) => file.path.endsWith(ending)));
 }
 
@@ -102,10 +104,13 @@ Map<String, List<String>> _generateExtensions(GeneratorOptions options) {
 
     result[additionalResultPath]!.add(join(out, '$name$_outputFileExtension'));
     result[additionalResultPath]!
+        
         .add(join(out, '$name$_outputEnumsFileExtension'));
     result[additionalResultPath]!
+        
         .add(join(out, '$name$_outputModelsFileExtension'));
     result[additionalResultPath]!
+        
         .add(join(out, '$name$_outputResponsesFileExtension'));
     result[additionalResultPath]!
         .add(join(out, '$name$_outputMetaDataFileExtension'));
