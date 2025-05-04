@@ -28,6 +28,7 @@ class SwaggerSchema {
     this.readOnly = false,
     this.writeOnly = false,
     this.deprecated = false,
+    this.isEnumListType = false,
   }) : _type = type;
 
   @JsonKey(name: 'readOnly')
@@ -85,8 +86,8 @@ class SwaggerSchema {
 
   List<String> get enumValues {
     final values = (msEnum?.values.isNotEmpty == true
-        ? msEnum?.values.map((e) => e.value)
-        : enumValuesObj) ??
+            ? msEnum?.values.map((e) => e.value)
+            : enumValuesObj) ??
         [];
 
     return values.map((e) => e.toString()).toList();
@@ -110,9 +111,9 @@ class SwaggerSchema {
 
   bool get shouldBeNullable =>
       isNullable == true ||
-          readOnly ||
-          writeOnly ||
-          (_type is List && (_type as List).contains('null'));
+      readOnly ||
+      writeOnly ||
+      (_type is List && (_type as List).contains('null'));
 
   @JsonKey(name: 'schema')
   SwaggerSchema? schema;
@@ -130,6 +131,9 @@ class SwaggerSchema {
 
   List<String>? enumNames;
 
+  // Used to track whether a list type contains enum values
+  bool isEnumListType = false;
+
   factory SwaggerSchema.fromJson(Map<String, dynamic> json) =>
       _$SwaggerSchemaFromJson(json)
         ..enumNames = ((json[kEnumNames] ?? json[kEnumVarnames]) as List?)
@@ -138,9 +142,9 @@ class SwaggerSchema {
         ..isNullable = (json[kIsNullable] ?? json[kNullable] ?? false) as bool;
 
   Map<String, dynamic> toJson() => {
-    ..._$SwaggerSchemaToJson(this),
-    if (enumNames != null) kEnumNames: enumNames,
-  };
+        ..._$SwaggerSchemaToJson(this),
+        if (enumNames != null) kEnumNames: enumNames,
+      };
 }
 
 bool _additionalsFromJson(dynamic value) => value != false;

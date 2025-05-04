@@ -175,8 +175,8 @@ class SwaggerRequestsGenerator extends SwaggerGeneratorBase {
           swaggerRoot: swaggerRoot,
           overridenResponses: Map.fromEntries(
             options.responseOverrideValueMap
-              .where((v) => v.method.isEmpty || v.method == requestType)
-              .map((v) => MapEntry(v.url, v)),
+                .where((v) => v.method.isEmpty || v.method == requestType)
+                .map((v) => MapEntry(v.url, v)),
           ),
         );
 
@@ -822,14 +822,13 @@ class SwaggerRequestsGenerator extends SwaggerGeneratorBase {
           result.add(
             Parameter(
               (p) => p
-                ..name = kBody
+                ..name = 'image' // TODO: use parameter name can be found in swagger
                 ..named = true
                 ..required = true
-                ..type = Reference(getValidatedClassName(
-                    requestBody.content!.schema!.ref.getRef()))
+                ..type = Reference(options.multipartFileType)
                 ..named = true
                 ..annotations.add(
-                  refer(kPart.pascalCase).call([]),
+                  refer(kPartFile.pascalCase).call([literalString('image')]),
                 ),
             ),
           );
@@ -881,7 +880,7 @@ class SwaggerRequestsGenerator extends SwaggerGeneratorBase {
                   ..required = isRequired
                   ..type = Reference(typeRef)
                   ..annotations.add(
-                    refer(kPartFile.pascalCase).call([]),
+                    refer(kPartFile.pascalCase).call([literalString(key)]),
                   ),
               ),
             );

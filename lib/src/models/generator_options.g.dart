@@ -90,7 +90,8 @@ GeneratorOptions _$GeneratorOptionsFromJson(Map json) => GeneratorOptions(
               ?.map((e) => e as String)
               .toList() ??
           const [],
-      multipartFileType: json['multipart_file_type'] as String? ?? 'List<int>',
+      multipartFileType:
+          json['multipart_file_type'] as String? ?? 'MultipartFile',
       urlencodedFileType:
           json['urlencoded_file_type'] as String? ?? 'Map<String, String>',
       generateFirstSucceedResponse:

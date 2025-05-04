@@ -37,7 +37,7 @@ class GeneratorOptions {
     this.scalars = const {},
     this.overridenModels = const [],
     this.generateToJsonFor = const [],
-    this.multipartFileType = 'List<int>',
+    this.multipartFileType = 'MultipartFile',
     this.urlencodedFileType = 'Map<String, String>',
     this.generateFirstSucceedResponse = true,
   });
