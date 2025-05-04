@@ -819,16 +819,35 @@ class SwaggerRequestsGenerator extends SwaggerGeneratorBase {
 
         // in case a scheme for the request is defined, we use only one param const kBody and the type of this param will be the scheme as class.
         if (requestBody.content?.schema?.ref.isNotEmpty == true) {
+          // Extract the actual parameter name from the referenced schema
+          String paramName = 'file'; // Default fallback name
+
+          // Get the schema reference
+          final schemaRef =
+              requestBody.content?.schema?.ref.getUnformattedRef() ?? '';
+          if (schemaRef.isNotEmpty) {
+            // Look up the actual schema from the reference
+            final schema = root.allSchemas[schemaRef];
+            if (schema != null && schema.properties.isNotEmpty) {
+              // The first property is typically the file parameter
+              // For multipart file uploads, there's usually only one property
+              final propertyKey = schema.properties.keys.firstOrNull;
+              if (propertyKey != null) {
+                paramName = propertyKey;
+              }
+            }
+          }
+
           result.add(
             Parameter(
               (p) => p
-                ..name = 'image' // TODO: use parameter name can be found in swagger
+                ..name = paramName
                 ..named = true
                 ..required = true
                 ..type = Reference(options.multipartFileType)
                 ..named = true
                 ..annotations.add(
-                  refer(kPartFile.pascalCase).call([literalString('image')]),
+                  refer(kPartFile.pascalCase).call([literalString(paramName)]),
                 ),
             ),
           );
