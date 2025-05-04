@@ -173,8 +173,8 @@ class SwaggerRequestsGenerator extends SwaggerGeneratorBase {
           swaggerRoot: swaggerRoot,
           overridenResponses: Map.fromEntries(
             options.responseOverrideValueMap
-                .where((v) => v.method.isEmpty || v.method == requestType)
-                .map((v) => MapEntry(v.url, v)),
+                  .where((v) => v.method.isEmpty || v.method == requestType)
+                  .map((v) => MapEntry(v.url, v)),
           ),
         );
 
@@ -784,7 +784,7 @@ class SwaggerRequestsGenerator extends SwaggerGeneratorBase {
           result.add(
             Parameter(
               (p) => p
-                ..name = kBody
+                ..name = 'image' // TODO: use parameter name can be found in swagger
                 ..named = true
                 ..required = true
                 ..type = Reference(getValidatedClassName(requestBody.content!.schema!.ref.getRef()))

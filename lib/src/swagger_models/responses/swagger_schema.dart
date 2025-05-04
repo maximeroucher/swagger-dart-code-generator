@@ -29,6 +29,7 @@ class SwaggerSchema {
     this.writeOnly = false,
     this.deprecated = false,
     this.rawJson,
+    this.isEnumListType = false,
   }) : _type = type;
 
   @JsonKey(name: 'readOnly')
@@ -133,6 +134,9 @@ class SwaggerSchema {
   bool hasAdditionalProperties;
 
   List<String>? enumNames;
+
+  // Used to track whether a list type contains enum values
+  bool isEnumListType = false;
 
   factory SwaggerSchema.fromJson(Map<String, dynamic> json) =>
       _$SwaggerSchemaFromJson(json)
