@@ -78,7 +78,6 @@ abstract class SwaggerEnumsGenerator extends SwaggerGeneratorBase {
 
     return result.unique((e) => e.name);
   }
-
   String generateFromMap(
     SwaggerRoot root,
     String fileName,
@@ -91,6 +90,7 @@ abstract class SwaggerEnumsGenerator extends SwaggerGeneratorBase {
       return '';
     }
 
+    // Include both the enum definitions and their conversion methods
     return '''
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -98,6 +98,8 @@ abstract class SwaggerEnumsGenerator extends SwaggerGeneratorBase {
 import 'package:json_annotation/json_annotation.dart';
 import 'package:collection/collection.dart';
 ${allEnums.map((e) => e.toString()).join('\n')}
+
+${allEnums.map((e) => e.generateFromJsonToJson(options.enumsCaseSensitive)).join('\n')}
 ''';
   }
 

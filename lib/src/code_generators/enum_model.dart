@@ -41,15 +41,18 @@ class EnumModel {
         allFieldNames,
       );
 
-      allFieldNames
-          .add(validatedValue.substring(0, validatedValue.indexOf('(')));
+      allFieldNames.add(
+        validatedValue.substring(0, validatedValue.indexOf('(')),
+      );
 
       if (isInteger) {
         resultStrings.add(
-            "\t@JsonValue(${_normalizeJsonKeyString(value)})\n\t$validatedValue");
+          "\t@JsonValue(${_normalizeJsonKeyString(value)})\n\t$validatedValue",
+        );
       } else {
         resultStrings.add(
-            "\t@JsonValue('${_normalizeJsonKeyString(value)}')\n\t$validatedValue");
+          "\t@JsonValue('${_normalizeJsonKeyString(value)}')\n\t$validatedValue",
+        );
       }
     }
 
@@ -104,37 +107,41 @@ const $name(this.value);
     return '$result(${isInteger ? fieldValue : '\'${_normalizeJsonKeyString(fieldValue)}\''})';
   }
 
-  String generateFromJsonToJson([bool caseSensitive = true]) {
+  String generateFromJsonToJson([
+    bool caseSensitive = true,
+    bool includePrefix = false,
+  ]) {
+    final prefix = includePrefix ? 'enums.' : '';
     final type = isInteger ? 'int' : 'String';
 
     String enumParse(bool nullCheck) => caseSensitive || isInteger
-        ? 'return enums.$name.values.firstWhereOrNull((e) => e.value == ${name.camelCase}) ?? defaultValue'
-        : 'return enums.$name.values.firstWhereOrNull((e) => e.value.toString().toLowerCase() == ${name.camelCase}${nullCheck ? '?' : ''}.toString().toLowerCase()) ?? defaultValue';
+        ? 'return $prefix$name.values.firstWhereOrNull((e) => e.value == ${name.camelCase}) ?? defaultValue'
+        : 'return $prefix$name.values.firstWhereOrNull((e) => e.value.toString().toLowerCase() == ${name.camelCase}${nullCheck ? '?' : ''}.toString().toLowerCase()) ?? defaultValue';
 
     final enumListFromJsonReturn = isInteger
-      ? 'return ${name.camelCase}.map((e) => ${name.camelCase}FromJson(e)).toList()'
-      : 'return ${name.camelCase}.map((e) => ${name.camelCase}FromJson(e.toString())).toList()';
-    
+        ? 'return ${name.camelCase}.map((e) => ${name.camelCase}FromJson(e)).toList()'
+        : 'return ${name.camelCase}.map((e) => ${name.camelCase}FromJson(e.toString())).toList()';
+
     return '''
-$type? ${name.camelCase}NullableToJson(enums.$name? ${name.camelCase}) {
+$type? ${name.camelCase}NullableToJson($prefix$name? ${name.camelCase}) {
   return ${name.camelCase}?.value;
 }
 
-$type? ${name.camelCase}ToJson(enums.$name ${name.camelCase}) {
+$type? ${name.camelCase}ToJson($prefix$name ${name.camelCase}) {
   return ${name.camelCase}.value;
 }
 
-enums.$name ${name.camelCase}FromJson(
+$prefix$name ${name.camelCase}FromJson(
   Object? ${name.camelCase},
-  [enums.$name? defaultValue,]
+  [$prefix$name? defaultValue,]
   ) {
 
-${enumParse(true)} ?? enums.$name.swaggerGeneratedUnknown;
+${enumParse(true)} ?? $prefix$name.swaggerGeneratedUnknown;
 }
 
-enums.$name? ${name.camelCase}NullableFromJson(
+$prefix$name? ${name.camelCase}NullableFromJson(
   Object? ${name.camelCase},
-  [enums.$name? defaultValue,]
+  [$prefix$name? defaultValue,]
   ) {
     if(${name.camelCase} == null){
       return null;
@@ -143,14 +150,14 @@ enums.$name? ${name.camelCase}NullableFromJson(
 }
 
 String ${name.camelCase}ExplodedListToJson(
-    List<enums.$name>? ${name.camelCase}) {
+    List<$prefix$name>? ${name.camelCase}) {
 
     return ${name.camelCase}?.map((e) => e.value!).join(',') ?? '';
 }
 
 
 List<$type> ${name.camelCase}ListToJson(
-    List<enums.$name>? ${name.camelCase}) {
+    List<$prefix$name>? ${name.camelCase}) {
 
   if(${name.camelCase} == null)
   {
@@ -162,9 +169,9 @@ List<$type> ${name.camelCase}ListToJson(
       .toList();
 }
 
-List<enums.$name> ${name.camelCase}ListFromJson(
+List<$prefix$name> ${name.camelCase}ListFromJson(
     List? ${name.camelCase},
-    [List<enums.$name>? defaultValue,]) {
+    [List<$prefix$name>? defaultValue,]) {
 
   if(${name.camelCase} == null)
   {
@@ -175,9 +182,9 @@ List<enums.$name> ${name.camelCase}ListFromJson(
 }
 
 
-List<enums.$name>? ${name.camelCase}NullableListFromJson(
+List<$prefix$name>? ${name.camelCase}NullableListFromJson(
     List? ${name.camelCase},
-    [List<enums.$name>? defaultValue,]) {
+    [List<$prefix$name>? defaultValue,]) {
 
   if(${name.camelCase} == null)
   {

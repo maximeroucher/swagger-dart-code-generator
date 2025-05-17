@@ -1,5 +1,5 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format width=80
-//Generated code
 
 part of 'pet_service_yaml.swagger.dart';
 
