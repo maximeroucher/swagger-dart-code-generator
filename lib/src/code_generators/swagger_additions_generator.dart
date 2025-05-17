@@ -95,14 +95,15 @@ ${options.overrideToString ? "import 'dart:convert';" : ''}
     for (var element in options.importPaths) {
       result.write('import \'$element\';');
     }
-
     if (enumsExport.isNotEmpty) {
       result.write(enumsExport);
     }
 
-    if (hasModels && separateModels) {
-      result.write("export '$swaggerFileName.models.swagger.dart';");
-    }
+    // Don't export the models swagger file when we're already importing it
+    // This was causing duplicate exports
+    // if (hasModels && separateModels) {
+    //   result.write("export '$swaggerFileName.models.swagger.dart';");
+    // }
 
     result.write('\n\n');
 

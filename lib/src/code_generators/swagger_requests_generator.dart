@@ -469,23 +469,30 @@ class SwaggerRequestsGenerator extends SwaggerGeneratorBase {
         }
         return '${p.name} : ${p.name}?.toString()';
       }
-
       if (p.type!.symbol!.startsWith('List<enums.')) {
         final typeName = p.type!.symbol!;
-        final name = typeName.substring(11, typeName.length - 2).camelCase;
+        final enumName = typeName.substring(11, typeName.length - 2);
+        final enumNameCamel = enumName.camelCase;
 
-        return '${p.name} : ${name}ListToJson(${p.name})';
+        return '${p.name} : ${enumNameCamel}ListToJson(${p.name})';
       }
 
       return '${p.name} : ${p.name}';
     }).join(', ');
-
     var allModelsString = '';
-
     allModels.toSet().forEach((model) {
       final validatedName = getValidatedClassName(model);
-      allModelsString +=
-          'generatedMapping.putIfAbsent($validatedName, () => $validatedName.fromJsonFactory);\n';
+      // Check if it's an enum type (starts with 'enums.')
+      if (validatedName.startsWith('enums.')) {
+        // For enums, provide a direct conversion function instead of using fromJsonFactory
+        // Ensure we return a non-null object by using the 'swaggerGeneratedUnknown' fallback
+        allModelsString +=
+            'generatedMapping.putIfAbsent($validatedName, () => (json) => $validatedName.values.firstWhereOrNull((e) => e.value == json) ?? $validatedName.swaggerGeneratedUnknown);\n';
+      } else {
+        // For regular models, use the standard fromJsonFactory approach
+        allModelsString +=
+            'generatedMapping.putIfAbsent($validatedName, () => $validatedName.fromJsonFactory);\n';
+      }
     });
 
     return Code(
@@ -1036,9 +1043,20 @@ class SwaggerRequestsGenerator extends SwaggerGeneratorBase {
   }
 
   bool _isEnumRef(String ref, SwaggerRoot root) {
-    final schemas = root.components?.schemas ?? <String, SwaggerSchema>{};
-    schemas.addAll(root.definitions);
+    // Check across all schemas, including components and definitions
+    final schemas = _getAllReusableObjects(root);
 
+    // First try exact match by key with ref
+    final unformattedRef = ref.getUnformattedRef();
+    if (schemas.containsKey(unformattedRef)) {
+      final schema = schemas[unformattedRef]!;
+      if ((schema.type == kString || schema.type == kInteger) &&
+          schema.enumValues.isNotEmpty) {
+        return true;
+      }
+    }
+
+    // If not found by exact key, search for matching reference
     final neededSchemaKey =
         schemas.keys.firstWhereOrNull((key) => key.getRef() == ref.getRef());
 
@@ -1163,10 +1181,27 @@ class SwaggerRequestsGenerator extends SwaggerGeneratorBase {
       return null;
     }
 
+    // Check if it's an enum type
+    if ((responseType == kString || responseType == kInteger) &&
+        swaggerResponse.schema?.enumValues.isNotEmpty == true) {
+      // This is an enum, return with the enum prefix
+      final enumName = swaggerResponse.schema?.title ?? responseType;
+      return enumName.asEnum();
+    }
+
     if (responseType == kArray) {
       final itemsOriginalRef = swaggerResponse.schema?.items?.originalRef;
       final itemsType = swaggerResponse.schema?.items?.type;
       final itemsRef = swaggerResponse.schema?.items?.ref.getRef();
+
+      // Check if array items are enum types
+      if (swaggerResponse.schema?.items?.enumValues.isNotEmpty == true) {
+        final enumName =
+            swaggerResponse.schema?.items?.title ?? itemsType ?? itemsRef;
+        if (enumName != null && enumName.isNotEmpty) {
+          return enumName.asEnum().asList();
+        }
+      }
 
       final arrayType = [itemsRef, itemsOriginalRef, itemsType, kObject]
           .firstWhere((element) => element?.isNotEmpty == true)!;
@@ -1188,12 +1223,21 @@ class SwaggerRequestsGenerator extends SwaggerGeneratorBase {
     final listRef = swaggerResponse.schema?.items?.ref ?? '';
 
     if (listRef.isNotEmpty) {
+      // Check if it's an enum list
+      if (_isEnumRef(listRef, root)) {
+        return listRef.getRef().asEnum().asList();
+      }
       return (listRef.getRef() + modelPostfix).asList();
     }
 
     final ref = swaggerResponse.schema?.ref ?? swaggerResponse.ref;
 
     if (ref.isNotEmpty) {
+      // Check if it's an enum
+      if (_isEnumRef(ref, root)) {
+        return ref.getRef().asEnum();
+      }
+
       final allReusableObjects = _getAllReusableObjects(root);
       final neededResponse = allReusableObjects[ref.getUnformattedRef()];
 
@@ -1207,6 +1251,12 @@ class SwaggerRequestsGenerator extends SwaggerGeneratorBase {
 
       if (kBasicTypes.contains(neededResponse.type)) {
         return kBasicTypesMap[neededResponse.type]!;
+      }
+
+      // Check if it's an enum by examining the schema
+      if (neededResponse.enumValues.isNotEmpty &&
+          (neededResponse.type == kString || neededResponse.type == kInteger)) {
+        return ref.getRef().asEnum();
       }
 
       if (neededResponse.oneOf.isNotEmpty) {
@@ -1273,6 +1323,11 @@ class SwaggerRequestsGenerator extends SwaggerGeneratorBase {
 
     final schemaRef = content.schema?.ref ?? '';
     if (schemaRef.isNotEmpty) {
+      // Check if it's an enum
+      if (_isEnumRef(schemaRef, swaggerRoot)) {
+        return schemaRef.getRef().asEnum();
+      }
+
       final allRefs = _getAllReusableObjects(swaggerRoot);
       final neededSchema = allRefs[schemaRef.getUnformattedRef()];
 
@@ -1282,6 +1337,12 @@ class SwaggerRequestsGenerator extends SwaggerGeneratorBase {
 
       if (kBasicTypes.contains(neededSchema.type)) {
         return kObject.pascalCase;
+      }
+
+      // Check if the schema itself contains enum values
+      if (neededSchema.enumValues.isNotEmpty &&
+          (neededSchema.type == kString || neededSchema.type == kInteger)) {
+        return schemaRef.getRef().asEnum();
       }
 
       var typeName =
@@ -1310,24 +1371,38 @@ class SwaggerRequestsGenerator extends SwaggerGeneratorBase {
     if (itemsRef.isNotEmpty) {
       return kBasicTypesMap[itemsRef]?.withPostfix(modelPostfix).asList();
     }
-
     final schemaItemsRef = content.schema?.items?.ref ?? '';
     if (schemaItemsRef.isNotEmpty) {
+      // Check if items are enum types
+      if (_isEnumRef(schemaItemsRef, swaggerRoot)) {
+        return schemaItemsRef.getRef().asEnum().asList();
+      }
+
       final result = getValidatedClassName(schemaItemsRef.getRef())
           .withPostfix(modelPostfix)
           .asList();
 
       return result;
     }
+    // Check if schema items have enum values directly
+    if (content.schema?.items?.enumValues.isNotEmpty == true) {
+      final itemsType = content.schema?.items?.type;
+      if (itemsType == kString || itemsType == kInteger) {
+        final enumName = content.schema?.items?.title ??
+            schemaItemsRef.getRef() ??
+            itemsType ??
+            'Unknown';
+        return enumName.asEnum().asList();
+      }
+    }
 
     if (content.schema?.type == kArray) {
       final itemsType = content.schema?.items?.type ?? '';
       final itemsFormat = content.schema?.items?.format ?? '';
-
-      if (itemsType == kArray && content.schema?.items?.items?.ref != null) {
-        final itemsItemsType = content.schema?.items?.items?.ref.getRef() ??
-            content.schema?.items?.items?.type ??
-            kObject;
+      if (itemsType == kArray && content.schema?.items?.items != null) {
+        final itemsItemsType = content.schema?.items?.items?.ref != null
+            ? content.schema!.items!.items!.ref.getRef()
+            : (content.schema?.items?.items?.type ?? kObject);
 
         return itemsItemsType.asList().asList();
       } else if (content.schema?.items?.properties.isNotEmpty == true) {
