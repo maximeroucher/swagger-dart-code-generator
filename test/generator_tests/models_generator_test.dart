@@ -550,6 +550,33 @@ void main() {
     });
   });
 
+  group('generatePropertyContentByAnyOf', () {
+    test('Should keep List<> for a nullable anyOf array whose item ref name '
+        'starts with List', () {
+      final prop = SwaggerSchema(anyOf: [
+        SwaggerSchema(
+          type: 'array',
+          items: SwaggerSchema(ref: '#/components/schemas/ListMemberBase'),
+        ),
+        SwaggerSchema(type: 'null'),
+      ]);
+
+      final result = generator.generatePropertyContentByAnyOf(
+        prop: prop,
+        propertyName: 'members',
+        propertyKey: 'members',
+        className: 'ListEdit',
+        allEnumNames: [],
+        allEnumListNames: [],
+        requiredProperties: [],
+        isDeprecated: false,
+      );
+
+      expect(result, contains('List<ListMemberBase>'));
+      expect(result, isNot(contains('ListListMemberBase')));
+    });
+  });
+
   group('generateEqualsOverride', () {
     test(
         "Should not return generated equals due to overrideEqualsAndHashcode set to false",
