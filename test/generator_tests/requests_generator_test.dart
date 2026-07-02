@@ -122,7 +122,62 @@ void main() {
       expect(result, isNot(contains("@PartFile('caption')")));
     });
   });
+
+  group('No-content responses', () {
+    final root = SwaggerRoot.parse(noContentService);
+    final result = SwaggerRequestsGenerator(
+      GeneratorOptions(inputFolder: '', outputFolder: ''),
+    ).generate(
+      swaggerRoot: root,
+      className: 'Api',
+      fileName: 'api',
+      allEnums: [],
+    );
+
+    test('Should return Response<void> for a 204 (no body) response', () {
+      expect(result, contains('Future<chopper.Response<void>> thingsIdDelete'));
+    });
+
+    test('Should keep an untyped {} body as Response<dynamic> (not void)', () {
+      // A `{}` schema still declares a body of unknown type, so it must stay
+      // the untyped fallback rather than becoming void.
+      expect(
+        result,
+        contains('Future<chopper.Response> thingsIdExportGet'),
+      );
+      expect(
+        result,
+        isNot(contains('Future<chopper.Response<void>> thingsIdExportGet')),
+      );
+    });
+  });
 }
+
+const noContentService = '''
+{
+    "openapi": "3.1.0",
+    "info": {"title": "Api", "version": "1.0.0"},
+    "paths": {
+        "/things/{id}": {
+            "delete": {
+                "operationId": "deleteThing",
+                "responses": {"204": {"description": "No Content"}}
+            }
+        },
+        "/things/{id}/export": {
+            "get": {
+                "operationId": "exportThing",
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "content": {"application/json": {"schema": {}}}
+                    }
+                }
+            }
+        }
+    }
+}
+''';
 
 const enumResponseService = '''
 {

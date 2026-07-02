@@ -185,8 +185,15 @@ class SwaggerRequestsGenerator extends SwaggerGeneratorBase {
           final innerResponseType = returnTypeName.isEmpty ? 'dynamic' : returnTypeName;
 
           returns = '${options.customReturnType}<$innerResponseType>';
+        } else if (returnTypeName.isNotEmpty) {
+          returns = returnTypeName.asFutureResponse();
+        } else if (_successHasNoContent(swaggerRequest.responses)) {
+          // A success response that declares no body (e.g. `204 No Content`)
+          // has no type to decode, so `Response<void>` is more accurate than
+          // the untyped `Response<dynamic>` fallback.
+          returns = kFutureResponseVoid;
         } else {
-          returns = returnTypeName.isEmpty ? kFutureResponse : returnTypeName.asFutureResponse();
+          returns = kFutureResponse;
         }
 
         final hasOptionalBody =
@@ -1056,6 +1063,18 @@ class SwaggerRequestsGenerator extends SwaggerGeneratorBase {
     }
 
     return methodName;
+  }
+
+  bool _successHasNoContent(Map<String, SwaggerResponse> responses) {
+    final successResponses = getSuccessedResponses(responses: responses);
+
+    if (successResponses.isEmpty) {
+      return false;
+    }
+
+    return successResponses.every(
+      (r) => r.schema == null && r.content == null && r.ref.isEmpty,
+    );
   }
 
   static List<SwaggerResponse> getSuccessedResponses({
