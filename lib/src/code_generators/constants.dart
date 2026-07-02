@@ -34,6 +34,7 @@ const kChopperApi = 'ChopperApi';
 const kResponse = 'Response';
 const kRequestBody = 'RequestBody';
 const kFutureResponse = 'Future<chopper.Response>';
+const kFutureResponseVoid = 'Future<chopper.Response<void>>';
 const kString = 'string';
 const kInteger = 'integer';
 const kInt64 = 'int64';
