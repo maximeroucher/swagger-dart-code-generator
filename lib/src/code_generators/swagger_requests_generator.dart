@@ -1077,6 +1077,25 @@ class SwaggerRequestsGenerator extends SwaggerGeneratorBase {
     );
   }
 
+  /// Whether [response] declares a binary body (a file/stream download).
+  /// Covers OpenAPI 2.0 `type: file`, 3.0 `type: string, format: binary`, and
+  /// the 3.1 `type: string, contentMediaType: ...` shape.
+  bool _isBinaryResponse(SwaggerResponse response) {
+    bool isBinarySchema(SwaggerSchema? schema) {
+      if (schema == null) {
+        return false;
+      }
+
+      return schema.type == 'file' ||
+          (schema.type == kString &&
+              (schema.format == kBinary ||
+                  schema.contentMediaType.isNotEmpty));
+    }
+
+    return isBinarySchema(response.schema) ||
+        isBinarySchema(response.content?.schema);
+  }
+
   static List<SwaggerResponse> getSuccessedResponses({
     required Map<String, SwaggerResponse> responses,
   }) {
@@ -1335,6 +1354,13 @@ class SwaggerRequestsGenerator extends SwaggerGeneratorBase {
     }
 
     final neededResponse = neededResponses.first;
+
+    // A binary response body (a file/download) is raw bytes, so it maps to
+    // `List<int>` rather than String/dynamic. The `$JsonSerializableConverter`
+    // returns `bodyBytes` for this type instead of trying to JSON-decode.
+    if (_isBinaryResponse(neededResponse)) {
+      return kBinaryResponseType;
+    }
 
     if (neededResponse.schema?.type == kObject &&
         neededResponse.schema?.properties.isNotEmpty == true) {
