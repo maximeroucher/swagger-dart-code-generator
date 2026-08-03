@@ -748,7 +748,7 @@ void main() {
       // (returning Uuid?) satisfies the JsonConverter contract.
       expect(
           result,
-          contains(r'class _\$UuidJsonConverter implements json.JsonConverter<Uuid?, dynamic>'));
+          contains('class _\$UuidJsonConverter implements json.JsonConverter<Uuid?, dynamic>'));
       expect(result, contains('fromJson(json) => uuidFromJson(json);'));
     });
 
