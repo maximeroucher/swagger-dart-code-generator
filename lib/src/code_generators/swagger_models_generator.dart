@@ -495,7 +495,7 @@ abstract class SwaggerModelsGenerator extends SwaggerGeneratorBase {
 
       result +=
           '''
-class $className implements json.JsonConverter<${value.type}, dynamic> {
+class $className implements json.JsonConverter<${value.type}?, dynamic> {
   const $className();
 
   @override
