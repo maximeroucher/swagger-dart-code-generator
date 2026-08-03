@@ -474,9 +474,17 @@ abstract class SwaggerModelsGenerator extends SwaggerGeneratorBase {
     return ', includeIfNull: ${options.includeIfNull}';
   }
 
-  String generatePropertyJsonConverterAnnotation(SwaggerSchema schema) {
-    final override = schema.type == 'string' ? options.scalars[schema.format] : null;
-    if (override == null) {
+  String generatePropertyJsonConverterAnnotation(
+    SwaggerSchema schema,
+    bool isNullable,
+  ) {
+    // The generated converter is `JsonConverter<T?, dynamic>` (see
+    // generateJsonConverters), so it only fits nullable scalar-typed
+    // properties. Non-nullable properties keep json_serializable's native
+    // handling (e.g. `DateTime.parse`).
+    final override =
+        schema.type == 'string' ? options.scalars[schema.format] : null;
+    if (override == null || !isNullable) {
       return '';
     }
 
@@ -915,8 +923,10 @@ static $returnType $fromJsonFunction($valueType? value) => $enumNameCamelCase$fr
 
     final dateToJsonValue = generateToJsonForDate(resolvedSchemaForDetails);
     final includeIfNullString = generateIncludeIfNullString();
-    final jsonConverterAnnotation =
-        generatePropertyJsonConverterAnnotation(resolvedSchemaForDetails);
+    final jsonConverterAnnotation = generatePropertyJsonConverterAnnotation(
+      resolvedSchemaForDetails,
+      isEffectivelyNullable,
+    );
 
     final jsonKeyContent =
         "@JsonKey(name: '$propertyKey'$includeIfNullString$dateToJsonValue${unknownEnumValue.jsonKey})\n";
@@ -1228,7 +1238,10 @@ static $returnType $fromJsonFunction($valueType? value) => $enumNameCamelCase$fr
   }) {
     final jsonConverterAnnotation = prop.items == null
         ? ''
-        : generatePropertyJsonConverterAnnotation(prop.items!);
+        : generatePropertyJsonConverterAnnotation(
+            prop.items!,
+            prop.items!.shouldBeNullable,
+          );
     final typeName = _generateListPropertyTypeName(
       allEnumListNames: allEnumListNames,
       allEnumNames: allEnumNames,
@@ -1309,7 +1322,10 @@ static $returnType $fromJsonFunction($valueType? value) => $enumNameCamelCase$fr
     required bool isDeprecated,
   }) {
     final includeIfNullString = generateIncludeIfNullString();
-    final jsonConverterAnnotation = generatePropertyJsonConverterAnnotation(prop);
+    final jsonConverterAnnotation = generatePropertyJsonConverterAnnotation(
+      prop,
+      isNullable(className, requiredProperties, propertyKey, prop),
+    );
 
     var jsonKeyContent =
         "@JsonKey(name: '${_validatePropertyKey(propertyKey)}'$includeIfNullString";

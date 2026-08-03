@@ -713,13 +713,74 @@ void main() {
       expect(
           result,
           contains(RegExp(
-              r'''@_\$UuidJsonConverter\(\)\s*@JsonKey\(name: 'list', defaultValue: <Uuid>\[\]\)\s*final List<Uuid>\? list;''')));
+              r'''@JsonKey\(name: 'list', defaultValue: <Uuid>\[\]\)\s*final List<Uuid>\? list;''')));
       expect(
           result,
           contains(
               'class _\$UuidJsonConverter implements json.JsonConverter<Uuid?, dynamic>'));
       expect(result, contains('fromJson(json) => Uuid.parse(json);'));
       expect(result, contains('toJson(json) => json.toString();'));
+    });
+
+    test('Should only annotate nullable scalar properties with the converter',
+        () {
+      const doc = '''
+{
+  "openapi": "3.0.1",
+  "info": {"title": "Some service", "version": "1.0"},
+  "components": {
+    "responses": {
+      "Resp": {
+        "description": "Success",
+        "content": {
+          "application/json": {
+            "schema": {
+              "required": ["id"],
+              "properties": {
+                "id": {"type": "string", "format": "uuid"},
+                "note": {"type": "string", "format": "uuid"}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+''';
+      final map = SwaggerRoot.parse(doc);
+      final generator = SwaggerModelsGeneratorV3(
+        GeneratorOptions(
+          inputFolder: '',
+          outputFolder: '',
+          scalars: {
+            'uuid': CustomScalar(
+              type: 'Uuid',
+              deserialize: 'uuidFromJson',
+            ),
+          },
+        ),
+      );
+
+      final result = generator.generate(
+        root: map,
+        fileName: 'fileName',
+        allEnums: [],
+      );
+
+      // Required (non-nullable) property: the converter annotation is omitted.
+      expect(
+          result,
+          contains(RegExp(r'''@JsonKey\(name: 'id'\)\s*final Uuid id;''')));
+      expect(
+          result,
+          isNot(contains(RegExp(
+              r'''@_\$UuidJsonConverter\(\)\s*@JsonKey\(name: 'id'\)'''))));
+      // Nullable property: the converter annotation is present.
+      expect(
+          result,
+          contains(RegExp(
+              r'''@_\$UuidJsonConverter\(\)\s*@JsonKey\(name: 'note'\)\s*final Uuid\? note;''')));
     });
 
     test('Should emit a nullable converter type for a null-safe deserialize'
