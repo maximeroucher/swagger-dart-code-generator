@@ -722,6 +722,36 @@ void main() {
       expect(result, contains('toJson(json) => json.toString();'));
     });
 
+    test('Should emit a nullable converter type for a null-safe deserialize'
+        ' function', () {
+      final map = SwaggerRoot.parse(schemasWithUuidsInProperties);
+      final generator = SwaggerModelsGeneratorV3(
+        GeneratorOptions(
+          inputFolder: '',
+          outputFolder: '',
+          scalars: {
+            'uuid': CustomScalar(
+              type: 'Uuid',
+              deserialize: 'uuidFromJson',
+            ),
+          },
+        ),
+      );
+
+      final result = generator.generate(
+        root: map,
+        fileName: 'fileName',
+        allEnums: [],
+      );
+
+      // The converter type is nullable so a null-safe deserialize helper
+      // (returning Uuid?) satisfies the JsonConverter contract.
+      expect(
+          result,
+          contains(r'class _\$UuidJsonConverter implements json.JsonConverter<Uuid?, dynamic>'));
+      expect(result, contains('fromJson(json) => uuidFromJson(json);'));
+    });
+
     test('Should include serialize/deserialize functions in JsonKey annotation',
         () {
       final map = SwaggerRoot.parse(schemasWithUuidsInProperties);

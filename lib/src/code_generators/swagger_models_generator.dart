@@ -495,6 +495,9 @@ abstract class SwaggerModelsGenerator extends SwaggerGeneratorBase {
 
       result +=
           '''
+// The value type is made nullable so that null-safe scalar deserialize
+// helpers (functions returning `T?`, e.g. a date-time parser that accepts
+// missing values) satisfy the JsonConverter contract and compile.
 class $className implements json.JsonConverter<${value.type}?, dynamic> {
   const $className();
 
