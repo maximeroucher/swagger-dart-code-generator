@@ -718,7 +718,7 @@ void main() {
           result,
           contains(
               'class _\$UuidJsonConverter implements json.JsonConverter<Uuid?, dynamic>'));
-      expect(result, contains('fromJson(json) => Uuid.parse(json);'));
+      expect(result, contains('fromJson(json) => json == null ? null : Uuid.parse(json);'));
       expect(result, contains('toJson(json) => json.toString();'));
     });
 
@@ -783,6 +783,78 @@ void main() {
               r'''@_\$UuidJsonConverter\(\)\s*@JsonKey\(name: 'note'\)\s*final Uuid\? note;''')));
     });
 
+    test('Should emit toJson for required date-time scalar properties', () {
+      const doc = '''
+{
+  "openapi": "3.0.1",
+  "info": {"title": "Some service", "version": "1.0"},
+  "components": {
+    "responses": {
+      "Resp": {
+        "description": "Success",
+        "content": {
+          "application/json": {
+            "schema": {
+              "required": ["start", "name"],
+              "properties": {
+                "name": {"type": "string"},
+                "start": {"type": "string", "format": "date-time"},
+                "end": {"type": "string", "format": "date-time"}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+''';
+      final map = SwaggerRoot.parse(doc);
+      final generator = SwaggerModelsGeneratorV3(
+        GeneratorOptions(
+          inputFolder: '',
+          outputFolder: '',
+          scalars: {
+            'date-time': CustomScalar(
+              type: 'DateTime',
+              deserialize: 'dateTimeFromJson',
+              serialize: 'dateTimeToJson',
+            ),
+          },
+        ),
+      );
+      final result = generator.generate(
+        root: map,
+        fileName: 'fileName',
+        allEnums: [],
+      );
+
+      // Required date-time property serializes through the scalar's serialize
+      // function (UTC cast) instead of the naive default toIso8601String.
+      expect(
+        result,
+        contains(RegExp(
+          r'''@JsonKey\(name: 'start', fromJson: dateTimeFromJson, toJson: dateTimeToJson\)\s*final DateTime start;''',
+        )),
+      );
+      // The converter fromJson null-guards the (non-nullable) deserialize.
+      expect(result, contains('fromJson(json) => json == null ? null : dateTimeFromJson(json);'));
+      // The converter annotation is still only for nullable properties.
+      expect(
+        result,
+        isNot(contains(RegExp(
+          r'''@_\$DateTimeJsonConverter\(\)\s*@JsonKey\(name: 'start'\)''',
+        ))),
+      );
+      // Nullable date-time property keeps the converter annotation.
+      expect(
+        result,
+        contains(RegExp(
+          r'''@_\$DateTimeJsonConverter\(\)\s*@JsonKey\(name: 'end'\)\s*final DateTime\? end;''',
+        )),
+      );
+    });
+
     test('Should emit a nullable converter type for a null-safe deserialize'
         ' function', () {
       final map = SwaggerRoot.parse(schemasWithUuidsInProperties);
@@ -810,7 +882,7 @@ void main() {
       expect(
           result,
           contains('class _\$UuidJsonConverter implements json.JsonConverter<Uuid?, dynamic>'));
-      expect(result, contains('fromJson(json) => uuidFromJson(json);'));
+      expect(result, contains('fromJson(json) => json == null ? null : uuidFromJson(json);'));
     });
 
     test('Should include serialize/deserialize functions in JsonKey annotation',
@@ -844,7 +916,7 @@ void main() {
           result,
           contains(
               'class _\$UuidJsonConverter implements json.JsonConverter<Uuid?, dynamic>'));
-      expect(result, contains('fromJson(json) => customUuidParse(json);'));
+      expect(result, contains('fromJson(json) => json == null ? null : customUuidParse(json);'));
       expect(result, contains('toJson(json) => customUuidToString(json);'));
     });
   });

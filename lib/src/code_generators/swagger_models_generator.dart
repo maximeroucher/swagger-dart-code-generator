@@ -510,7 +510,7 @@ class $className implements json.JsonConverter<${value.type}?, dynamic> {
   const $className();
 
   @override
-  fromJson(json) => ${value.deserialize}(json);
+  fromJson(json) => json == null ? null : ${value.deserialize}(json);
 
   @override
   toJson(json) => ${value.serialize.isEmpty ? 'json.toString()' : '${value.serialize}(json)'};
@@ -552,7 +552,10 @@ class $className implements json.JsonConverter<${value.type}?, dynamic> {
       isNullable: isNullable(typeName, [], propertyKey, prop),
     );
 
-    final dateToJsonValue = generateToJsonForDate(prop);
+    final dateToJsonValue = generateToJsonForDate(
+      prop,
+      isNullable: isNullable(typeName, [], propertyKey, prop),
+    );
 
     final includeIfNullString = generateIncludeIfNullString();
 
@@ -679,7 +682,7 @@ static $returnType $fromJsonFunction($valueType? value) => $enumNameCamelCase$fr
     return JsonEnumValue(jsonKey: jsonKey, fromJson: fromJson);
   }
 
-  String generateToJsonForDate(SwaggerSchema map) {
+  String generateToJsonForDate(SwaggerSchema map, {required bool isNullable}) {
     final type = map.type.toLowerCase();
     final format = map.format.toLowerCase();
 
@@ -687,6 +690,21 @@ static $returnType $fromJsonFunction($valueType? value) => $enumNameCamelCase$fr
 
     if (isDate) {
       return ', toJson: _dateToJson';
+    }
+
+    // Non-nullable date-time fields can't use the scalar converter: it is
+    // typed `JsonConverter<T?, dynamic>`, so json_serializable only applies it
+    // to nullable fields. Without this, required dates are serialized with the
+    // naive `DateTime.toIso8601String()` (no UTC offset), which timezone-aware
+    // backends reject. Emit the scalar's serialize function to keep the UTC Z.
+    if (!isNullable && type == kString && format == 'date-time') {
+      final override = options.scalars[format];
+      if (override != null && override.serialize.isNotEmpty) {
+        final fromJson = override.deserialize.isEmpty
+            ? ''
+            : ', fromJson: ${override.deserialize}';
+        return '$fromJson, toJson: ${override.serialize}';
+      }
     }
 
     return '';
@@ -764,7 +782,10 @@ static $returnType $fromJsonFunction($valueType? value) => $enumNameCamelCase$fr
       isNullable: isNullable(className, requiredProperties, propertyKey, prop),
     );
 
-    final dateToJsonValue = generateToJsonForDate(prop);
+    final dateToJsonValue = generateToJsonForDate(
+      prop,
+      isNullable: isNullable(className, requiredProperties, propertyKey, prop),
+    );
 
     final jsonKeyContent =
         "@JsonKey(name: '${_validatePropertyKey(propertyKey)}'$includeIfNullString${unknownEnumValue.jsonKey}$dateToJsonValue)\n";
@@ -921,7 +942,10 @@ static $returnType $fromJsonFunction($valueType? value) => $enumNameCamelCase$fr
       className: className,
     );
 
-    final dateToJsonValue = generateToJsonForDate(resolvedSchemaForDetails);
+    final dateToJsonValue = generateToJsonForDate(
+      resolvedSchemaForDetails,
+      isNullable: isEffectivelyNullable,
+    );
     final includeIfNullString = generateIncludeIfNullString();
     final jsonConverterAnnotation = generatePropertyJsonConverterAnnotation(
       resolvedSchemaForDetails,
@@ -1357,7 +1381,10 @@ static $returnType $fromJsonFunction($valueType? value) => $enumNameCamelCase$fr
       className: className,
     );
 
-    final dateToJsonValue = generateToJsonForDate(prop);
+    final dateToJsonValue = generateToJsonForDate(
+      prop,
+      isNullable: isNullable(className, requiredProperties, propertyKey, prop),
+    );
 
     jsonKeyContent += unknownEnumValue.jsonKey;
     jsonKeyContent += dateToJsonValue;
