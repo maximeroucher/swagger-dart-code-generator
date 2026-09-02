@@ -16,7 +16,7 @@ import 'package:http/http.dart' show MultipartFile;
 import 'package:chopper/chopper.dart' as chopper;
 import 'pet_service_yaml.enums.swagger.dart' as enums;
 import 'pet_service_yaml.enums.swagger.dart'
-    show OrderStatus, PetStatus, PetFindByStatusGetStatus;
+    show PetFindByStatusGetStatus, OrderStatus, PetStatus;
 import 'pet_service_yaml.metadata.swagger.dart';
 export 'pet_service_yaml.enums.swagger.dart';
 

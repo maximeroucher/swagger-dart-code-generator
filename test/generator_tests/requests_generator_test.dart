@@ -89,7 +89,9 @@ void main() {
     });
 
     test('Should register an enum factory in generatedMapping for list decoding', () {
-      expect(result, contains('enums.AccountType.fromJsonFactory'));
+      // The enum factory is registered with the unprefixed type name because
+      // the Chopper converter uses the unprefixed Item type parameter
+      expect(result, contains('AccountType.fromJsonFactory'));
     });
   });
 

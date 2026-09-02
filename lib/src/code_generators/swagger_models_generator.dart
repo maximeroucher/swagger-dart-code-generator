@@ -1522,10 +1522,7 @@ static $returnType $fromJsonFunction($valueType? value) => $enumNameCamelCase$fr
 
       propertyName = getValidatedParameterName(propertyName).asParameterName();
 
-      if (propertyName == 'response') {
-        final a = 0;
-      }
-
+      
       if (propertyName.isEmpty) {
         propertyName = '\$';
       }

@@ -218,6 +218,17 @@ class SwaggerDartCodeGenerator implements Builder {
       options,
     );
 
+    final requests = codeGenerator.generateRequests(
+      contents,
+      getClassNameFromFileName(fileNameWithExtension),
+      removeFileExtension(fileNameWithExtension),
+      options,
+      allEnums,
+    );
+
+    // Extract used enum names from both requests and models
+    final usedEnumNames = _extractUsedEnumNames('$requests$models');
+
     final imports = codeGenerator.generateImportsContent(
       fileNameWithoutExtension,
       models.contains('@JsonSerializable'),
@@ -225,15 +236,7 @@ class SwaggerDartCodeGenerator implements Builder {
       enums.isNotEmpty,
       options.separateModels,
       options,
-      allEnums.map((e) => e.name).toSet().toList(),
-    );
-
-    final requests = codeGenerator.generateRequests(
-      contents,
-      getClassNameFromFileName(fileNameWithExtension),
-      removeFileExtension(fileNameWithExtension),
-      options,
-      allEnums,
+      usedEnumNames,
     );
 
     final metadata = codeGenerator.generateMetaData(options);
@@ -325,6 +328,19 @@ $dateToJson
           Reason: $e''');
       return code;
     }
+  }
+
+  List<String> _extractUsedEnumNames(String requestsCode) {
+    final enumNames = <String>{};
+    final regex = RegExp(r'enums\.(\w+)');
+    final matches = regex.allMatches(requestsCode);
+    for (final match in matches) {
+      final enumName = match.group(1);
+      if (enumName != null) {
+        enumNames.add(enumName);
+      }
+    }
+    return enumNames.toList();
   }
 
   Future<void> _generateAdditionalFiles(AssetId inputId, BuildStep buildStep,

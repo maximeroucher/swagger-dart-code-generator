@@ -598,10 +598,12 @@ class SwaggerRequestsGenerator extends SwaggerGeneratorBase {
     });
 
     // Register enum factories for enum list responses
+    // Use the raw enum name (not enums.EnumName) because the Chopper converter
+    // uses the unprefixed type as the Item type parameter in client.send<ResultType, Item>
     var allEnumsString = '';
     allEnums.toSet().forEach((enumName) {
       allEnumsString +=
-          'generatedMapping.putIfAbsent(enums.$enumName, () => enums.$enumName.fromJsonFactory);\n';
+          'generatedMapping.putIfAbsent($enumName, () => $enumName.fromJsonFactory);\n';
     });
 
     return Code(
