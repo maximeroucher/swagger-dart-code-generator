@@ -1793,7 +1793,7 @@ class $validatedClassName{
 \t$fromJson\n
 \t$toJson\n
 $generatedProperties
-\tstatic const fromJsonFactory = _\$${validatedClassName}FromJson;
+\tstatic const fromJsonFactory = _\$${validatedClassName}FromJsonWrapper;
 
 $equalsOverride
 
@@ -1802,13 +1802,16 @@ $toStringOverride
 $getHashContent
 }
 $copyWithMethod
+
+$validatedClassName _\$${validatedClassName}FromJsonWrapper(Object? json) =>
+    _\$${validatedClassName}FromJson(json as Map<String, dynamic>);
 ''';
 
     return generatedClass;
   }
 
   String generatedFromJson(SwaggerSchema schema, String validatedClassName) {
-    return 'factory $validatedClassName.fromJson(Map<String, dynamic> json) => _\$${validatedClassName}FromJson(json);';
+    return 'factory $validatedClassName.fromJson(Object? json) => _\$${validatedClassName}FromJsonWrapper(json);';
   }
 
   String generateToJson(SwaggerSchema schema, String validatedClassName) {

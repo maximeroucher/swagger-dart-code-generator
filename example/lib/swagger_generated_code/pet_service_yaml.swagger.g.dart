@@ -70,14 +70,12 @@ Pet _$PetFromJson(Map<String, dynamic> json) => Pet(
   id: (json['id'] as num?)?.toInt(),
   category: json['category'] == null
       ? null
-      : Category.fromJson(json['category'] as Map<String, dynamic>),
+      : Category.fromJson(json['category']),
   name: json['name'] as String? ?? '',
   photoUrls: (json['photoUrls'] as List<dynamic>?)
       ?.map((e) => e as String)
       .toList(),
-  tags: (json['tags'] as List<dynamic>?)
-      ?.map((e) => Tag.fromJson(e as Map<String, dynamic>))
-      .toList(),
+  tags: (json['tags'] as List<dynamic>?)?.map(Tag.fromJson).toList(),
   status: petStatusNullableFromJson(json['status']),
 );
 

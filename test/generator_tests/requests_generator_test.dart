@@ -88,8 +88,8 @@ void main() {
       expect(result, isNot(contains('Response<List<AccountType>>')));
     });
 
-    test('Should not register an enum as a model in generatedMapping', () {
-      expect(result, isNot(contains('AccountType.fromJsonFactory')));
+    test('Should register an enum factory in generatedMapping for list decoding', () {
+      expect(result, contains('enums.AccountType.fromJsonFactory'));
     });
   });
 

@@ -37,7 +37,7 @@ class SwaggerAdditionsGenerator extends SwaggerGeneratorBase {
 // coverage:ignore-file
 // ignore_for_file: type=lint
 
-final Map<Type, Object Function(Map<String, dynamic>)> $mappingVariableName = {};
+final Map<Type, Object Function(Object?)> $mappingVariableName = {};
   """;
   }
 
@@ -168,7 +168,7 @@ String? _dateToJson(DateTime? date) {
       return '';
     }
     return '''
-typedef \$JsonFactory<T> = T Function(Map<String, dynamic> json);
+typedef \$JsonFactory<T> = T Function(Object? json);
 
 class \$CustomJsonDecoder {
   \$CustomJsonDecoder(this.factories);
@@ -176,7 +176,6 @@ class \$CustomJsonDecoder {
   final Map<Type, \$JsonFactory> factories;
 
   dynamic decode<T>(dynamic entity) {
-
     if (entity is Iterable) {
       return _decodeList<T>(entity);
     }
@@ -185,11 +184,17 @@ class \$CustomJsonDecoder {
       return entity;
     }
 
+    // Check if we have a factory for this type (e.g., enum types)
+    final factory = factories[T];
+    if (factory != null) {
+      return factory(entity);
+    }
+
     if (isTypeOf<T, Map>()) {
       return entity;
     }
 
-     if(isTypeOf<T, Iterable>()) {
+    if (isTypeOf<T, Iterable>()) {
       return entity;
     }
 

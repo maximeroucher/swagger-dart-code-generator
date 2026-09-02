@@ -15,6 +15,8 @@ import 'package:http/http.dart' as http;
 import 'package:http/http.dart' show MultipartFile;
 import 'package:chopper/chopper.dart' as chopper;
 import 'some_file_name.enums.swagger.dart' as enums;
+import 'some_file_name.enums.swagger.dart'
+    show OrderStatus, PetStatus, PetFindByStatusGetStatus;
 import 'some_file_name.metadata.swagger.dart';
 export 'some_file_name.enums.swagger.dart';
 
@@ -728,7 +730,7 @@ class Order {
     this.complete,
   });
 
-  factory Order.fromJson(Map<String, dynamic> json) => _$OrderFromJson(json);
+  factory Order.fromJson(Object? json) => _$OrderFromJsonWrapper(json);
 
   static const toJsonFactory = _$OrderToJson;
   Map<String, dynamic> toJson() => _$OrderToJson(this);
@@ -750,7 +752,7 @@ class Order {
   final enums.OrderStatus? status;
   @JsonKey(name: 'complete', includeIfNull: false, defaultValue: false)
   final bool? complete;
-  static const fromJsonFactory = _$OrderFromJson;
+  static const fromJsonFactory = _$OrderFromJsonWrapper;
 
   @override
   bool operator ==(Object other) {
@@ -831,12 +833,14 @@ extension $OrderExtension on Order {
   }
 }
 
+Order _$OrderFromJsonWrapper(Object? json) =>
+    _$OrderFromJson(json as Map<String, dynamic>);
+
 @JsonSerializable(explicitToJson: true)
 class Category {
   const Category({this.id, this.name});
 
-  factory Category.fromJson(Map<String, dynamic> json) =>
-      _$CategoryFromJson(json);
+  factory Category.fromJson(Object? json) => _$CategoryFromJsonWrapper(json);
 
   static const toJsonFactory = _$CategoryToJson;
   Map<String, dynamic> toJson() => _$CategoryToJson(this);
@@ -845,7 +849,7 @@ class Category {
   final int? id;
   @JsonKey(name: 'name', includeIfNull: false, defaultValue: '')
   final String? name;
-  static const fromJsonFactory = _$CategoryFromJson;
+  static const fromJsonFactory = _$CategoryFromJsonWrapper;
 
   @override
   bool operator ==(Object other) {
@@ -880,6 +884,9 @@ extension $CategoryExtension on Category {
   }
 }
 
+Category _$CategoryFromJsonWrapper(Object? json) =>
+    _$CategoryFromJson(json as Map<String, dynamic>);
+
 @JsonSerializable(explicitToJson: true)
 class User {
   const User({
@@ -893,7 +900,7 @@ class User {
     this.userStatus,
   });
 
-  factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
+  factory User.fromJson(Object? json) => _$UserFromJsonWrapper(json);
 
   static const toJsonFactory = _$UserToJson;
   Map<String, dynamic> toJson() => _$UserToJson(this);
@@ -914,7 +921,7 @@ class User {
   final String? phone;
   @JsonKey(name: 'userStatus', includeIfNull: false)
   final int? userStatus;
-  static const fromJsonFactory = _$UserFromJson;
+  static const fromJsonFactory = _$UserFromJsonWrapper;
 
   @override
   bool operator ==(Object other) {
@@ -1015,11 +1022,14 @@ extension $UserExtension on User {
   }
 }
 
+User _$UserFromJsonWrapper(Object? json) =>
+    _$UserFromJson(json as Map<String, dynamic>);
+
 @JsonSerializable(explicitToJson: true)
 class Tag {
   const Tag({this.id, this.name});
 
-  factory Tag.fromJson(Map<String, dynamic> json) => _$TagFromJson(json);
+  factory Tag.fromJson(Object? json) => _$TagFromJsonWrapper(json);
 
   static const toJsonFactory = _$TagToJson;
   Map<String, dynamic> toJson() => _$TagToJson(this);
@@ -1028,7 +1038,7 @@ class Tag {
   final int? id;
   @JsonKey(name: 'name', includeIfNull: false, defaultValue: '')
   final String? name;
-  static const fromJsonFactory = _$TagFromJson;
+  static const fromJsonFactory = _$TagFromJsonWrapper;
 
   @override
   bool operator ==(Object other) {
@@ -1063,6 +1073,9 @@ extension $TagExtension on Tag {
   }
 }
 
+Tag _$TagFromJsonWrapper(Object? json) =>
+    _$TagFromJson(json as Map<String, dynamic>);
+
 @JsonSerializable(explicitToJson: true)
 class Pet {
   const Pet({
@@ -1074,7 +1087,7 @@ class Pet {
     this.status,
   });
 
-  factory Pet.fromJson(Map<String, dynamic> json) => _$PetFromJson(json);
+  factory Pet.fromJson(Object? json) => _$PetFromJsonWrapper(json);
 
   static const toJsonFactory = _$PetToJson;
   Map<String, dynamic> toJson() => _$PetToJson(this);
@@ -1096,7 +1109,7 @@ class Pet {
     fromJson: petStatusNullableFromJson,
   )
   final enums.PetStatus? status;
-  static const fromJsonFactory = _$PetFromJson;
+  static const fromJsonFactory = _$PetFromJsonWrapper;
 
   @override
   bool operator ==(Object other) {
@@ -1174,12 +1187,15 @@ extension $PetExtension on Pet {
   }
 }
 
+Pet _$PetFromJsonWrapper(Object? json) =>
+    _$PetFromJson(json as Map<String, dynamic>);
+
 @JsonSerializable(explicitToJson: true)
 class ApiResponse {
   const ApiResponse({this.code, this.type, this.message});
 
-  factory ApiResponse.fromJson(Map<String, dynamic> json) =>
-      _$ApiResponseFromJson(json);
+  factory ApiResponse.fromJson(Object? json) =>
+      _$ApiResponseFromJsonWrapper(json);
 
   static const toJsonFactory = _$ApiResponseToJson;
   Map<String, dynamic> toJson() => _$ApiResponseToJson(this);
@@ -1190,7 +1206,7 @@ class ApiResponse {
   final String? type;
   @JsonKey(name: 'message', includeIfNull: false, defaultValue: '')
   final String? message;
-  static const fromJsonFactory = _$ApiResponseFromJson;
+  static const fromJsonFactory = _$ApiResponseFromJsonWrapper;
 
   @override
   bool operator ==(Object other) {
@@ -1237,6 +1253,8 @@ extension $ApiResponseExtension on ApiResponse {
   }
 }
 
+ApiResponse _$ApiResponseFromJsonWrapper(Object? json) =>
+    _$ApiResponseFromJson(json as Map<String, dynamic>);
 String? orderStatusNullableToJson(enums.OrderStatus? orderStatus) {
   return orderStatus?.value;
 }
@@ -1460,7 +1478,7 @@ petFindByStatusGetStatusNullableListFromJson(
       .toList();
 }
 
-typedef $JsonFactory<T> = T Function(Map<String, dynamic> json);
+typedef $JsonFactory<T> = T Function(Object? json);
 
 class $CustomJsonDecoder {
   $CustomJsonDecoder(this.factories);
@@ -1474,6 +1492,12 @@ class $CustomJsonDecoder {
 
     if (entity is T) {
       return entity;
+    }
+
+    // Check if we have a factory for this type (e.g., enum types)
+    final factory = factories[T];
+    if (factory != null) {
+      return factory(entity);
     }
 
     if (isTypeOf<T, Map>()) {
@@ -1517,6 +1541,13 @@ class $JsonSerializableConverter extends chopper.JsonConverter {
 
     if (ResultType == String) {
       return response.copyWith();
+    }
+
+    if (ResultType == (List<int>)) {
+      // Binary/file downloads: return the raw bytes instead of JSON-decoding.
+      return response.copyWith<ResultType>(
+        body: response.bodyBytes as ResultType,
+      );
     }
 
     if (ResultType == DateTime) {

@@ -18,6 +18,13 @@ enum OrderStatus {
   final String? value;
 
   const OrderStatus(this.value);
+
+  static Object fromJsonFactory(Object? value) =>
+      OrderStatus.values.firstWhereOrNull(
+        (e) =>
+            e.value.toString().toLowerCase() == value?.toString().toLowerCase(),
+      ) ??
+      OrderStatus.swaggerGeneratedUnknown;
 }
 
 enum PetStatus {
@@ -34,6 +41,13 @@ enum PetStatus {
   final String? value;
 
   const PetStatus(this.value);
+
+  static Object fromJsonFactory(Object? value) =>
+      PetStatus.values.firstWhereOrNull(
+        (e) =>
+            e.value.toString().toLowerCase() == value?.toString().toLowerCase(),
+      ) ??
+      PetStatus.swaggerGeneratedUnknown;
 }
 
 enum PetFindByStatusGetStatus {
@@ -50,4 +64,11 @@ enum PetFindByStatusGetStatus {
   final String? value;
 
   const PetFindByStatusGetStatus(this.value);
+
+  static Object fromJsonFactory(Object? value) =>
+      PetFindByStatusGetStatus.values.firstWhereOrNull(
+        (e) =>
+            e.value.toString().toLowerCase() == value?.toString().toLowerCase(),
+      ) ??
+      PetFindByStatusGetStatus.swaggerGeneratedUnknown;
 }

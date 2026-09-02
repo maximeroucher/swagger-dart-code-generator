@@ -249,7 +249,7 @@ void main() {
       const className = 'Animals';
       const classExpectedResult = 'class Animals{';
       const factoryConstructorExpectedResult =
-          '\tfactory Animals.fromJson(Map<String, dynamic> json) => _\$AnimalsFromJson(json);\n';
+          '\tfactory Animals.fromJson(Object? json) => _\$AnimalsFromJsonWrapper(json);\n';
       final result = generator.generateModelClassContent(
         SwaggerRoot.empty,
         className,
@@ -272,7 +272,7 @@ void main() {
       const className = 'Animals';
       const classExpectedResult = 'class Animals{';
       const factoryConstructorExpectedResult =
-          '\tfactory Animals.fromJson(Map<String, dynamic> json) => _\$AnimalsFromJson(json);\n';
+          '\tfactory Animals.fromJson(Object? json) => _\$AnimalsFromJsonWrapper(json);\n';
       final result = generator2.generateModelClassContent(
         SwaggerRoot.empty,
         className,

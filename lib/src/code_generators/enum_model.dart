@@ -53,6 +53,8 @@ class EnumModel {
       }
     }
 
+    final type = isInteger ? 'int' : 'String';
+
     return '''
 enum $name {
 @JsonValue(null)
@@ -60,9 +62,15 @@ swaggerGeneratedUnknown(null),
 
 ${resultStrings.join(',\n')};
 
-final ${isInteger ? 'int' : 'String'}? value;
+final $type? value;
 
 const $name(this.value);
+
+static Object fromJsonFactory(Object? value) =>
+    $name.values.firstWhereOrNull(
+      (e) => e.value.toString().toLowerCase() == value?.toString().toLowerCase(),
+    ) ??
+    $name.swaggerGeneratedUnknown;
 }''';
   }
 
