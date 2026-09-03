@@ -90,7 +90,7 @@ import 'package:chopper/chopper.dart' as chopper;''';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:json_annotation/json_annotation.dart' as json;
 import 'package:collection/collection.dart';
-${options.overrideToString ? "import 'dart:convert';" : ''}
+import 'dart:convert';
 """);
 
     if (hasModels && separateModels) {
@@ -241,6 +241,17 @@ class \$JsonSerializableConverter extends chopper.JsonConverter {
       return response.copyWith(
           body: DateTime.parse((response.body as String).replaceAll('"', ''))
               as ResultType);
+    }
+
+    // Check if we have a factory for the Item type (e.g., enum types in a list)
+    // If so, we need to decode manually because Chopper's decodeJson tries to
+    // cast List<String> to List<Item> which fails for enums.
+    final factory = generatedMapping[Item];
+    if (factory != null) {
+      // Decode JSON manually and use our custom decoder
+      final jsonBody = jsonDecode(response.bodyString);
+      final decodedBody = \$jsonDecoder.decode<Item>(jsonBody);
+      return response.copyWith<ResultType>(body: decodedBody as ResultType);
     }
 
     final jsonRes = await super.convertResponse(response);
